@@ -62,10 +62,9 @@
             <div id="audio-player-container" class="hidden space-y-3">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
                 
-                <!-- Hướng dẫn phân tích file thực tế chính xác -->
                 <div class="bg-blue-950/40 border border-blue-900/50 p-3 rounded-2xl space-y-2">
                     <div class="text-[11px] text-blue-200 leading-relaxed">
-                        ✨ <b>Xử lý chuẩn xác từ file:</b> Để hệ thống tự động đọc âm thanh phát ra từ file, bạn hãy bấm <b>"Bắt đầu phân tích file"</b> ngay bên dưới, sau đó bấm nút <b>▶️ Play</b> ở khung phát nhạc phía trên. AI sẽ tự động lắng nghe luồng âm thanh phát ra từ chính file của bạn và chuyển hóa thành văn bản thực tế một cách chuẩn xác!
+                        ✨ <b>Xử lý file âm thanh:</b> Trình duyệt web giới hạn việc đọc trực tiếp file nội bộ bằng SpeechRecognition thông thường. Vui lòng phát file qua khung phía trên và sử dụng chế độ ghi âm song song hoặc tích hợp API chuyên dụng nếu cần xử lý file nặng.
                     </div>
                     <div class="flex gap-2">
                         <button onclick="startRealFileProcessing()" id="process-file-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5">
@@ -173,6 +172,10 @@
 
         function startRealFileProcessing() {
             if (!fileRealRecognition) { alert('Trình duyệt không hỗ trợ!'); return; }
+            const audioEl = document.getElementById('uploaded-audio-element');
+            if (!audioEl.src) { alert('Vui lòng chọn file âm thanh trước!'); return; }
+            
+            audioEl.play();
             fileRealRecognition.start();
             
             const btn = document.getElementById('process-file-btn');
@@ -187,6 +190,8 @@
         function stopRealFileProcessing() {
             if (!fileRealRecognition) return;
             fileRealRecognition.stop();
+            const audioEl = document.getElementById('uploaded-audio-element');
+            if(audioEl) audioEl.pause();
             
             const btn = document.getElementById('process-file-btn');
             btn.className = "flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
@@ -230,7 +235,7 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = 'Van_Ban_Chuyen_Doi.doc';
-            document.body.appendChild(a);
+            document.importNode ? document.body.appendChild(a) : null;
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
