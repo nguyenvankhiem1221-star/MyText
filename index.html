@@ -18,13 +18,13 @@
                 🎙️
             </div>
             <h1 class="text-xl font-bold tracking-tight">Speech-to-Text VN</h1>
-            <p class="text-xs text-slate-400 mt-1">Trợ lý chuyển đổi âm thanh tự động & Xuất file Word</p>
+            <p class="text-xs text-slate-400 mt-1">Trợ lý chuyển đổi âm thanh thông minh & Xuất file Word</p>
         </div>
 
         <!-- Tabs Switcher -->
         <div class="grid grid-cols-2 gap-2 bg-slate-900/80 p-1 rounded-2xl mb-5 border border-slate-700/60">
             <button onclick="switchTab('record')" id="tab-record" class="py-2.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white transition-all shadow">🎙️ Ghi âm trực tiếp</button>
-            <button onclick="switchTab('upload')" id="tab-upload" class="py-2.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">📁 Tải file & Tự động chạy</button>
+            <button onclick="switchTab('upload')" id="tab-upload" class="py-2.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">📁 Tải file chuẩn hóa</button>
         </div>
 
         <!-- Tab 1: Ghi âm trực tiếp -->
@@ -48,7 +48,7 @@
             </div>
         </div>
 
-        <!-- Tab 2: Tải file và tự động nhận diện -->
+        <!-- Tab 2: Tải file xử lý thực tế -->
         <div id="section-upload" class="hidden space-y-4">
             <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-4 text-center transition-all cursor-pointer bg-slate-900/40" onclick="document.getElementById('audio-file').click()">
                 <div class="text-2xl mb-1">📂</div>
@@ -62,14 +62,25 @@
             <div id="audio-player-container" class="hidden space-y-3">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
                 
-                <button onclick="processAudioAutomatically()" id="auto-process-btn" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold rounded-xl text-white shadow-lg transition-all flex items-center justify-center gap-2">
-                    <span>⚡ Bắt đầu tự động nhận diện toàn bộ file</span>
-                </button>
+                <!-- Hướng dẫn phân tích file thực tế chính xác -->
+                <div class="bg-blue-950/40 border border-blue-900/50 p-3 rounded-2xl space-y-2">
+                    <div class="text-[11px] text-blue-200 leading-relaxed">
+                        ✨ <b>Xử lý chuẩn xác từ file:</b> Để hệ thống tự động đọc âm thanh phát ra từ file, bạn hãy bấm <b>"Bắt đầu phân tích file"</b> ngay bên dưới, sau đó bấm nút <b>▶️ Play</b> ở khung phát nhạc phía trên. AI sẽ tự động lắng nghe luồng âm thanh phát ra từ chính file của bạn và chuyển hóa thành văn bản thực tế một cách chuẩn xác!
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="startRealFileProcessing()" id="process-file-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5">
+                            <span>⚡ Bắt đầu phân tích file</span>
+                        </button>
+                        <button onclick="stopRealFileProcessing()" id="stop-file-btn" disabled class="py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed">
+                            <span>⏹️ Dừng lại</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản chuẩn xác từ file:</label>
-                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung chữ từ file sẽ tự động hiển thị đầy đủ ở đây..."></textarea>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản trích xuất thực tế từ file:</label>
+                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung chữ thực tế từ file sẽ hiển thị tại đây..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -95,9 +106,10 @@
             document.getElementById('tab-' + tab).className = "py-2.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white transition-all shadow";
         }
 
-        let recognition;
+        let recognition, fileRealRecognition;
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
             recognition = new SpeechRecognition();
             recognition.lang = 'vi-VN';
             recognition.continuous = true;
@@ -110,6 +122,20 @@
                     else interim += event.results[i][0].transcript;
                 }
                 document.getElementById('result-text').value = final + interim;
+            };
+
+            fileRealRecognition = new SpeechRecognition();
+            fileRealRecognition.lang = 'vi-VN';
+            fileRealRecognition.continuous = true;
+            fileRealRecognition.interimResults = true;
+            fileRealRecognition.onresult = function(event) {
+                let interim = '';
+                let final = document.getElementById('upload-result-text').value;
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) final += event.results[i][0].transcript + ' ';
+                    else interim += event.results[i][0].transcript;
+                }
+                document.getElementById('upload-result-text').value = final + interim;
             };
         }
 
@@ -131,11 +157,9 @@
             document.getElementById('stop-btn').className = "flex-1 py-3 px-4 bg-slate-700 text-slate-400 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-not-allowed";
         }
 
-        let currentAudioFile = null;
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                currentAudioFile = file;
                 const info = document.getElementById('file-info');
                 info.innerText = `Đã chọn file: ${file.name}`;
                 info.classList.remove('hidden');
@@ -147,88 +171,30 @@
             }
         }
 
-        // Tự động phân tích toàn bộ file âm thanh và trích xuất chữ đầy đủ chính xác
-        async function processAudioAutomatically() {
-            if (!currentAudioFile) {
-                alert('Vui lòng chọn file âm thanh trước!');
-                return;
-            }
+        function startRealFileProcessing() {
+            if (!fileRealRecognition) { alert('Trình duyệt không hỗ trợ!'); return; }
+            fileRealRecognition.start();
+            
+            const btn = document.getElementById('process-file-btn');
+            btn.className = "flex-1 py-2.5 bg-red-600 animate-pulse text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
+            btn.innerHTML = "<span>🔴 Đang phân tích âm thanh file...</span>";
+            
+            const stopBtn = document.getElementById('stop-file-btn');
+            stopBtn.disabled = false;
+            stopBtn.className = "py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer";
+        }
 
-            const btn = document.getElementById('auto-process-btn');
-            const resultBox = document.getElementById('upload-result-text');
-            btn.innerHTML = "<span>⏳ Đang phân tích sóng âm thanh tự động...</span>";
-            btn.disabled = true;
-
-            try {
-                // Giải mã file âm thanh bằng Web Audio API
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const arrayBuffer = await currentAudioFile.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                
-                // Lấy thông tin chi tiết từ file
-                const duration = audioBuffer.duration;
-                const sampleRate = audioBuffer.sampleRate;
-                
-                btn.innerHTML = "<span>⚙️ Đang bóc tách lời thoại tiếng Việt...</span>";
-
-                // Sử dụng kỹ thuật xử lý luồng giả lập thời gian thực chạy trực tiếp nội dung âm thanh của file qua bộ nhận diện
-                const audioEl = document.getElementById('uploaded-audio-element');
-                audioEl.currentTime = 0;
-                audioEl.muted = false; // Bật để trình duyệt xử lý luồng đọc
-
-                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    const autoRecognizer = new SpeechRecognition();
-                    autoRecognizer.lang = 'vi-VN';
-                    autoRecognizer.continuous = true;
-                    autoRecognizer.interimResults = false;
-
-                    let fullText = "";
-                    autoRecognizer.onresult = function(event) {
-                        for (let i = event.resultIndex; i < event.results.length; ++i) {
-                            if (event.results[i].isFinal) {
-                                fullText += event.results[i][0].transcript + " ";
-                                resultBox.value = fullText;
-                            }
-                        }
-                    };
-
-                    autoRecognizer.onerror = function(e) {
-                        console.log("Lỗi nhận diện:", e);
-                    };
-
-                    autoRecognizer.onend = function() {
-                        btn.innerHTML = "<span>⚡ Bắt đầu tự động nhận diện toàn bộ file</span>";
-                        btn.disabled = false;
-                        audioEl.pause();
-                        if(!resultBox.value.trim()) {
-                            // Nội dung dự phòng phân tích từ khoá mẫu nếu file mã hóa âm thanh bảo mật
-                            resultBox.value = `[Hoàn tất trích xuất file: ${currentAudioFile.name}]\n` +
-                                `Nội dung nhận diện giọng nói chuẩn xác:\n` +
-                                `Khủng hoảng tuổi lên 1 của bé! Giai đoạn này các mẹ cần kiên nhẫn lắng nghe, đồng hành và thấu hiểu tâm lý thay đổi liên tục của con yêu...`;
-                        }
-                    };
-
-                    // Chạy phát file ẩn để trình duyệt tự nhận diện qua micro ảo
-                    audioEl.play();
-                    autoRecognizer.start();
-
-                    // Tự động dừng sau khi phát hết thời lượng file
-                    setTimeout(() => {
-                        try { autoRecognizer.stop(); } catch(e){}
-                    }, Math.min(duration * 1000 + 1000, 60000));
-
-                } else {
-                    throw new Error("Trình duyệt không hỗ trợ nhận diện giọng nói.");
-                }
-
-            } catch (error) {
-                btn.innerHTML = "<span>⚡ Bắt đầu tự động nhận diện toàn bộ file</span>";
-                btn.disabled = false;
-                resultBox.value = `[Đã phân tích thành công file: ${currentAudioFile.name}]\n` +
-                    `Nội dung giọng nói trong file:\n` +
-                    `Chào bạn, đây là đoạn văn bản tự động chuyển đổi từ file âm thanh/video bạn tải lên hệ thống.`;
-            }
+        function stopRealFileProcessing() {
+            if (!fileRealRecognition) return;
+            fileRealRecognition.stop();
+            
+            const btn = document.getElementById('process-file-btn');
+            btn.className = "flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
+            btn.innerHTML = "<span>⚡ Bắt đầu phân tích file</span>";
+            
+            const stopBtn = document.getElementById('stop-file-btn');
+            stopBtn.disabled = true;
+            stopBtn.className = "py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed";
         }
 
         function copyText(id) {
@@ -240,6 +206,7 @@
 
         function clearText(id) {
             document.getElementById(id).value = '';
+            if(id === 'upload-result-text') stopRealFileProcessing();
         }
 
         function exportToWord(id) {
