@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-lg mx-auto bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
+    <div class="w-full max-w-lg mx-auto bg-slate-800/85 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
         
         <!-- Header -->
         <div class="flex flex-col items-center text-center mb-5">
@@ -18,7 +18,7 @@
                 🎙️
             </div>
             <h1 class="text-xl font-bold tracking-tight">Speech-to-Text VN</h1>
-            <p class="text-xs text-slate-400 mt-1">Chuyển đổi giọng nói thành văn bản & Xuất file Word</p>
+            <p class="text-xs text-slate-400 mt-1">Trích xuất văn bản từ File & Xuất file Word</p>
         </div>
 
         <!-- Tabs Switcher -->
@@ -51,7 +51,7 @@
 
         <!-- Tab 2: Tải file lên -->
         <div id="section-upload" class="hidden space-y-4">
-            <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-5 text-center transition-all cursor-pointer bg-slate-900/40" onclick="document.getElementById('audio-file').click()">
+            <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-4 text-center transition-all cursor-pointer bg-slate-900/40" onclick="document.getElementById('audio-file').click()">
                 <div class="text-2xl mb-1">📂</div>
                 <div class="text-xs font-semibold text-slate-200">Nhấn để chọn file âm thanh / video</div>
                 <div class="text-[10px] text-slate-400 mt-0.5">Hỗ trợ MP3, WAV, MP4</div>
@@ -60,9 +60,17 @@
             
             <div id="file-info" class="text-xs text-indigo-300 hidden text-center bg-indigo-950/40 py-1.5 px-3 rounded-xl border border-indigo-900/50 truncate"></div>
 
+            <!-- Trình phát Audio/Video ẩn/hiện để nghe file -->
+            <div id="audio-player-container" class="hidden">
+                <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="transcribeAudioFile()" id="transcribe-file-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">▶️ Tự động nhận diện thành văn bản</button>
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản kết quả từ file:</label>
-                <textarea id="upload-result-text" rows="3" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung văn bản từ file sẽ hiển thị tại đây..."></textarea>
+                <textarea id="upload-result-text" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung văn bản sẽ xuất hiện ở đây khi chạy hoặc bạn có thể chỉnh sửa trực tiếp..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -175,11 +183,55 @@
                 const info = document.getElementById('file-info');
                 info.innerText = `Đã nhận file: ${file.name}`;
                 info.classList.remove('hidden');
+
+                const audioEl = document.getElementById('uploaded-audio-element');
+                audioEl.src = URL.createObjectURL(file);
+                document.getElementById('audio-player-container').classList.remove('hidden');
                 
-                // Giả lập đưa chữ mẫu vào ô kết quả khi nhận file để test tính năng xuất Word
                 document.getElementById('upload-result-text').value = 
-                    `[Đã tải lên file: ${file.name}]\n\n(Lưu ý: Trình duyệt web tĩnh không tự động nghe hiểu toàn bộ file video nặng. Bạn có thể dán nội dung văn bản cần thiết vào đây hoặc chỉnh sửa trực tiếp, sau đó bấm tải file Word xuống để sử dụng.)`;
+                    `[Đã tải lên file: ${file.name}]\nBạn có thể nhấn nút "Tự động nhận diện thành văn bản" bên trên, hoặc chỉnh sửa nội dung trực tiếp tại đây trước khi bấm tải file Word.`;
             }
+        }
+
+        let fileRecognition = null;
+        function transcribeAudioFile() {
+            const audioEl = document.getElementById('uploaded-audio-element');
+            if (!audioEl.src) {
+                alert('Vui lòng chọn file trước!');
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                alert('Trình duyệt không hỗ trợ nhận diện giọng nói!');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            fileRecognition = new SpeechRecognition();
+            fileRecognition.lang = 'vi-VN';
+            fileRecognition.continuous = true;
+            fileRecognition.interimResults = true;
+
+            fileRecognition.onresult = function(event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript + ' ';
+                }
+                document.getElementById('upload-result-text').value += ' ' + transcript;
+            };
+
+            audioEl.play();
+            fileRecognition.start();
+            document.getElementById('transcribe-file-btn').innerText = "Đang chạy nghe file...";
+            document.getElementById('transcribe-file-btn').className = "flex-1 py-2 bg-red-600 text-xs font-semibold rounded-xl text-white transition-all shadow animate-pulse";
+
+            audioEl.onended = function() {
+                if (fileRecognition) {
+                    fileRecognition.stop();
+                }
+                document.getElementById('transcribe-file-btn').innerText = "▶️ Hoàn thành! Nghe lại";
+                document.getElementById('transcribe-file-btn').className = "flex-1 py-2 bg-green-600 text-xs font-semibold rounded-xl text-white transition-all shadow";
+            };
         }
 
         function exportToWord(id) {
@@ -188,7 +240,6 @@
                 alert('Không có văn bản để xuất file!');
                 return;
             }
-            // Tạo cấu trúc file Word cơ bản (.doc)
             const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
             <head><meta charset='utf-8'><title>Export Document</title></head>
             <body style='font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.6;'>
