@@ -60,17 +60,14 @@
             
             <div id="file-info" class="text-xs text-indigo-300 hidden text-center bg-indigo-950/40 py-1.5 px-3 rounded-xl border border-indigo-900/50 truncate"></div>
 
-            <!-- Trình phát Audio/Video ẩn/hiện để nghe file -->
-            <div id="audio-player-container" class="hidden">
+            <div id="audio-player-container" class="hidden space-y-2">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="transcribeAudioFile()" id="transcribe-file-btn" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">▶️ Tự động nhận diện thành văn bản</button>
-                </div>
+                <button onclick="transcribeAudioFile()" id="transcribe-file-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">▶️ Tự động chuyển đổi thành văn bản</button>
             </div>
 
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản kết quả từ file:</label>
-                <textarea id="upload-result-text" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung văn bản sẽ xuất hiện ở đây khi chạy hoặc bạn có thể chỉnh sửa trực tiếp..."></textarea>
+                <textarea id="upload-result-text" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nội dung văn bản từ file sẽ xuất hiện tại đây..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -188,8 +185,8 @@
                 audioEl.src = URL.createObjectURL(file);
                 document.getElementById('audio-player-container').classList.remove('hidden');
                 
-                document.getElementById('upload-result-text').value = 
-                    `[Đã tải lên file: ${file.name}]\nBạn có thể nhấn nút "Tự động nhận diện thành văn bản" bên trên, hoặc chỉnh sửa nội dung trực tiếp tại đây trước khi bấm tải file Word.`;
+                // Làm sạch ô văn bản để sẵn sàng nhận text chuyển đổi từ file
+                document.getElementById('upload-result-text').value = "";
             }
         }
 
@@ -212,25 +209,29 @@
             fileRecognition.continuous = true;
             fileRecognition.interimResults = true;
 
+            document.getElementById('upload-result-text').value = ""; // Xóa trắng trước khi nhận diện mới
+
             fileRecognition.onresult = function(event) {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     transcript += event.results[i][0].transcript + ' ';
                 }
-                document.getElementById('upload-result-text').value += ' ' + transcript;
+                document.getElementById('upload-result-text').value += transcript;
             };
 
             audioEl.play();
             fileRecognition.start();
-            document.getElementById('transcribe-file-btn').innerText = "Đang chạy nghe file...";
-            document.getElementById('transcribe-file-btn').className = "flex-1 py-2 bg-red-600 text-xs font-semibold rounded-xl text-white transition-all shadow animate-pulse";
+            
+            const btn = document.getElementById('transcribe-file-btn');
+            btn.innerText = "⏳ Đang trích xuất văn bản từ file...";
+            btn.className = "w-full py-2.5 bg-red-600 text-xs font-semibold rounded-xl text-white transition-all shadow animate-pulse";
 
             audioEl.onended = function() {
                 if (fileRecognition) {
                     fileRecognition.stop();
                 }
-                document.getElementById('transcribe-file-btn').innerText = "▶️ Hoàn thành! Nghe lại";
-                document.getElementById('transcribe-file-btn').className = "flex-1 py-2 bg-green-600 text-xs font-semibold rounded-xl text-white transition-all shadow";
+                btn.innerText = "▶️ Chạy lại / Nghe lại file";
+                btn.className = "w-full py-2.5 bg-green-600 hover:bg-green-500 text-xs font-semibold rounded-xl text-white transition-all shadow";
             };
         }
 
