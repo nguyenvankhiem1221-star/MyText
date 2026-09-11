@@ -60,14 +60,27 @@
             
             <div id="file-info" class="text-xs text-indigo-300 hidden text-center bg-indigo-950/40 py-1.5 px-3 rounded-xl border border-indigo-900/50 truncate"></div>
 
-            <div id="audio-player-container" class="hidden space-y-2">
+            <div id="audio-player-container" class="hidden space-y-3">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
-                <button onclick="startAutoSpeechRecognition()" id="extract-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">⚡ Bấm phát file & Tự động chuyển thành chữ</button>
+                
+                <div class="bg-indigo-950/60 border border-indigo-900/60 p-3 rounded-2xl space-y-2">
+                    <div class="text-[11px] text-indigo-200 font-medium leading-relaxed">
+                        💡 <b>Mẹo chạy chữ từ file:</b> Bấm nút <span class="text-yellow-400 font-bold">"Bắt đầu nghe file"</span> bên dưới, sau đó bấm nút Play trên thanh phát nhạc phía trên để máy tự thu âm và chạy chữ chuẩn xác nhất!
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="startFileListening()" id="file-listen-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5">
+                            <span>🎙️ Bắt đầu nghe file</span>
+                        </button>
+                        <button onclick="stopFileListening()" id="file-stop-btn" disabled class="py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed">
+                            <span>⏹️ Dừng</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản chuyển đổi thực tế từ file:</label>
-                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ từ file âm thanh sẽ chạy trực tiếp vào đây..."></textarea>
+                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ sẽ chạy trực tiếp vào đây khi phát file..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -112,12 +125,12 @@
         }
 
         let recognition;
-        let uploadRecognition;
+        let fileRecognition;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
-            // Cho phần Ghi âm
+            // Phần ghi âm chung
             recognition = new SpeechRecognition();
             recognition.lang = 'vi-VN';
             recognition.continuous = true;
@@ -132,12 +145,12 @@
                 document.getElementById('result-text').value = final + interim;
             };
 
-            // Cho phần Tải file
-            uploadRecognition = new SpeechRecognition();
-            uploadRecognition.lang = 'vi-VN';
-            uploadRecognition.continuous = true;
-            uploadRecognition.interimResults = true;
-            uploadRecognition.onresult = function(event) {
+            // Phần nghe file tải lên
+            fileRecognition = new SpeechRecognition();
+            fileRecognition.lang = 'vi-VN';
+            fileRecognition.continuous = true;
+            fileRecognition.interimResults = true;
+            fileRecognition.onresult = function(event) {
                 let interim = '';
                 let final = document.getElementById('upload-result-text').value;
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -180,33 +193,30 @@
             }
         }
 
-        function startAutoSpeechRecognition() {
-            const audioEl = document.getElementById('uploaded-audio-element');
-            if (!audioEl.src) {
-                alert('Vui lòng chọn file âm thanh/video trước!');
-                return;
-            }
+        function startFileListening() {
+            if (!fileRecognition) { alert('Trình duyệt không hỗ trợ!'); return; }
+            fileRecognition.start();
+            
+            const btn = document.getElementById('file-listen-btn');
+            btn.className = "flex-1 py-2.5 bg-red-600 animate-pulse text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
+            btn.innerHTML = "<span>🔴 Đang lắng nghe file...</span>";
+            
+            const stopBtn = document.getElementById('file-stop-btn');
+            stopBtn.disabled = false;
+            stopBtn.className = "py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer";
+        }
 
-            if (!uploadRecognition) {
-                alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói!');
-                return;
-            }
-
-            // Bật bộ nhận diện và chạy phát file âm thanh đồng thời
-            uploadRecognition.start();
-            audioEl.play();
-
-            const btn = document.getElementById('extract-btn');
-            btn.innerText = "🔴 Đang nghe và chuyển đổi từ file...";
-            btn.className = "w-full py-2.5 bg-red-600 animate-pulse text-xs font-semibold rounded-xl text-white transition-all shadow";
-
-            audioEl.onended = function() {
-                try {
-                    uploadRecognition.stop();
-                } catch(e) {}
-                btn.innerText = "✅ Đã chuyển đổi xong!";
-                btn.className = "w-full py-2.5 bg-green-600 hover:bg-green-500 text-xs font-semibold rounded-xl text-white transition-all shadow";
-            };
+        function stopFileListening() {
+            if (!fileRecognition) return;
+            fileRecognition.stop();
+            
+            const btn = document.getElementById('file-listen-btn');
+            btn.className = "flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
+            btn.innerHTML = "<span>🎙️ Bắt đầu nghe file</span>";
+            
+            const stopBtn = document.getElementById('file-stop-btn');
+            stopBtn.disabled = true;
+            stopBtn.className = "py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed";
         }
 
         function copyText(id) {
@@ -219,11 +229,7 @@
         function clearText(id) {
             document.getElementById(id).value = '';
             if(id === 'upload-result-text') {
-                const btn = document.getElementById('extract-btn');
-                if (btn) {
-                    btn.innerText = "⚡ Bấm phát file & Tự động chuyển thành chữ";
-                    btn.className = "w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow";
-                }
+                stopFileListening();
             }
         }
 
