@@ -14,11 +14,11 @@
         
         <!-- Header -->
         <div class="flex flex-col items-center text-center mb-5">
-            <div id="mic-icon" class="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-2xl shadow-lg mb-2 shadow-indigo-500/30 transition-all">
-                🎙️
+            <div class="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-2xl shadow-lg mb-2 shadow-indigo-500/30">
+                📝
             </div>
-            <h1 class="text-xl font-bold tracking-tight">Speech-to-Text VN</h1>
-            <p class="text-xs text-slate-400 mt-1">Trích xuất văn bản từ File & Xuất file Word</p>
+            <h1 class="text-xl font-bold tracking-tight">Speech-to-Text & Editor VN</h1>
+            <p class="text-xs text-slate-400 mt-1">Nghe file & Soạn thảo văn bản xuất file Word</p>
         </div>
 
         <!-- Tabs Switcher -->
@@ -40,7 +40,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản nhận được từ micro:</label>
-                <textarea id="result-text" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ sẽ hiện ra ở đây khi bạn nói..."></textarea>
+                <textarea id="result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ sẽ hiện ra ở đây khi bạn nói..."></textarea>
             </div>
             <div class="flex gap-2">
                 <button onclick="copyText('result-text')" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-xl transition-all">📋 Sao chép</button>
@@ -62,12 +62,11 @@
 
             <div id="audio-player-container" class="hidden space-y-2">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
-                <button onclick="toggleRealtimeTranscribe()" id="transcribe-live-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">🎙️ Bật nhận diện giọng nói từ file phát ra</button>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản nhận diện thực tế:</label>
-                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Bấm nút nhận diện phía trên và phát video, chữ tiếng Việt sẽ tự động nhảy vào đây..."></textarea>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Soạn thảo / Nhận diện nội dung từ file:</label>
+                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nghe nội dung video phía trên và gõ/dán văn bản vào đây để xuất file Word..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -155,9 +154,6 @@
             document.getElementById('stop-btn').className = "flex-1 py-3 px-4 bg-slate-700 text-slate-400 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-not-allowed";
         }
 
-        let fileRecognition = null;
-        let isLiveTranscribing = false;
-
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -170,71 +166,6 @@
                 document.getElementById('audio-player-container').classList.remove('hidden');
                 document.getElementById('upload-result-text').value = "";
             }
-        }
-
-        function toggleRealtimeTranscribe() {
-            const audioEl = document.getElementById('uploaded-audio-element');
-            if (!audioEl.src) {
-                alert('Vui lòng chọn file video/âm thanh trước!');
-                return;
-            }
-
-            if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-                alert('Trình duyệt của bạn không hỗ trợ tính năng nhận diện!');
-                return;
-            }
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const btn = document.getElementById('transcribe-live-btn');
-
-            if (!isLiveTranscribing) {
-                isLiveTranscribing = true;
-                fileRecognition = new SpeechRecognition();
-                fileRecognition.lang = 'vi-VN';
-                fileRecognition.continuous = true;
-                fileRecognition.interimResults = true;
-
-                fileRecognition.onresult = function(event) {
-                    let transcript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        transcript += event.results[i][0].transcript + ' ';
-                    }
-                    document.getElementById('upload-result-text').value += transcript;
-                };
-
-                fileRecognition.onerror = function(event) {
-                    console.error(event.error);
-                };
-
-                fileRecognition.onend = function() {
-                    if (isLiveTranscribing) {
-                        try { fileRecognition.start(); } catch(e) {}
-                    }
-                };
-
-                fileRecognition.start();
-                audioEl.play();
-
-                btn.innerText = "⏹️ Đang nhận diện âm thanh từ file... (Bấm để dừng)";
-                btn.className = "w-full py-2.5 bg-red-600 animate-pulse text-xs font-semibold rounded-xl text-white transition-all shadow";
-
-                audioEl.onended = function() {
-                    stopRealtimeTranscribe();
-                };
-            } else {
-                stopRealtimeTranscribe();
-                audioEl.pause();
-            }
-        }
-
-        function stopRealtimeTranscribe() {
-            isLiveTranscribing = false;
-            if (fileRecognition) {
-                fileRecognition.stop();
-            }
-            const btn = document.getElementById('transcribe-live-btn');
-            btn.innerText = "🎙️ Bật nhận diện giọng nói từ file phát ra";
-            btn.className = "w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow";
         }
 
         function copyText(id) {
