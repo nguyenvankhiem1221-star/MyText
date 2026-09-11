@@ -12,6 +12,7 @@
 
     <div class="w-full max-w-lg mx-auto bg-slate-800/85 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
         
+        <!-- Header -->
         <div class="flex flex-col items-center text-center mb-5">
             <div id="mic-icon" class="w-16 h-16 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-2xl shadow-lg mb-2 shadow-indigo-500/30 transition-all">
                 🎙️
@@ -20,12 +21,14 @@
             <p class="text-xs text-slate-400 mt-1">Trích xuất văn bản từ File & Xuất file Word</p>
         </div>
 
+        <!-- Tabs Switcher -->
         <div class="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-2xl mb-5 border border-slate-700/60">
             <button onclick="switchTab('record')" id="tab-record" class="py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white transition-all shadow">🎙️ Ghi âm</button>
             <button onclick="switchTab('upload')" id="tab-upload" class="py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">📁 Tải file</button>
             <button onclick="switchTab('link')" id="tab-link" class="py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">🔗 Dán link</button>
         </div>
 
+        <!-- Tab 1: Ghi âm trực tiếp -->
         <div id="section-record" class="space-y-4">
             <div class="flex gap-3">
                 <button id="start-btn" onclick="startRecording()" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm text-white">
@@ -46,6 +49,7 @@
             </div>
         </div>
 
+        <!-- Tab 2: Tải file lên -->
         <div id="section-upload" class="hidden space-y-4">
             <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-4 text-center transition-all cursor-pointer bg-slate-900/40" onclick="document.getElementById('audio-file').click()">
                 <div class="text-2xl mb-1">📂</div>
@@ -58,12 +62,14 @@
 
             <div id="audio-player-container" class="hidden space-y-2">
                 <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
-                <button onclick="toggleFileListening()" id="transcribe-file-btn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow">🎙️ Bật Micro nghe file phát ra văn bản</button>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản kết quả từ file:</label>
-                <textarea id="upload-result-text" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Văn bản sẽ hiển thị ở đây khi bạn bật micro nghe file, hoặc bạn có thể dán nội dung/chỉnh sửa trực tiếp..."></textarea>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-xs font-medium text-slate-400">Văn bản kết quả từ file:</label>
+                    <span class="text-[10px] text-indigo-400">💡 Bạn có thể nghe file và chỉnh sửa trực tiếp bên dưới</span>
+                </div>
+                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Nghe nội dung file và gõ/chỉnh sửa văn bản hoàn chỉnh tại đây trước khi xuất file Word..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -73,6 +79,7 @@
             </div>
         </div>
 
+        <!-- Tab 3: Dán link -->
         <div id="section-link" class="hidden space-y-4">
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Dán đường dẫn (URL) trang web hoặc công cụ:</label>
@@ -90,6 +97,7 @@
             </div>
         </div>
 
+        <!-- Footer -->
         <div class="text-center mt-5 text-xs text-slate-500">
             Speech-to-Text VN &bull; Xuất Word trực tiếp
         </div>
@@ -164,7 +172,7 @@
             const file = event.target.files[0];
             if (file) {
                 const info = document.getElementById('file-info');
-                info.innerText = `Đã chọn file: ${file.name}`;
+                info.innerText = `Đã tải file: ${file.name}`;
                 info.classList.remove('hidden');
 
                 const audioEl = document.getElementById('uploaded-audio-element');
@@ -174,8 +182,44 @@
             }
         }
 
-        let fileListening = false;
-        let fileRecog = null;
+        function exportToWord(id) {
+            const text = document.getElementById(id).value;
+            if (!text.trim()) {
+                alert('Không có văn bản để xuất file!');
+                return;
+            }
+            const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head><meta charset='utf-8'><title>Export Document</title></head>
+            <body style='font-family: Arial, sans-serif; font-size: 14pt; line-height: 1.6;'>
+                <p>${text.replace(/\n/g, '<br>')}</p>
+            </body>
+            </html>`;
 
-        function toggleFileListening() {
-            const audioEl = document.
+            const blob = new Blob(['\ufeff' + htmlContent], {
+                type: 'application/msword'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Van_Ban_Chuyen_Doi.doc';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function openLink() {
+            let url = document.getElementById('target-link').value.trim();
+            if (url) {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                window.open(url, '_blank');
+            } else {
+                alert('Vui lòng nhập đường dẫn hợp lệ!');
+            }
+        }
+    </script>
+</body>
+</html>
