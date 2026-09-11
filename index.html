@@ -13,61 +13,130 @@
 </head>
 <body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md mx-auto bg-slate-800/60 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
+    <div class="w-full max-w-lg mx-auto bg-slate-800/80 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-2xl">
         
-        <!-- Avatar / Logo -->
+        <!-- Header / Logo -->
         <div class="flex flex-col items-center text-center mb-6">
-            <div class="w-20 h-20 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-3xl shadow-lg mb-3 shadow-indigo-500/30">
+            <div id="mic-icon" class="w-20 h-20 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-3xl shadow-lg mb-3 shadow-indigo-500/30 transition-all">
                 🎙️
             </div>
             <h1 class="text-xl font-bold tracking-tight">Speech-to-Text VN</h1>
-            <p class="text-xs text-slate-400 mt-1">Công cụ chuyển giọng nói tiếng Việt thành văn bản bằng AI</p>
+            <p class="text-xs text-slate-400 mt-1">Nói trực tiếp vào Micro để chuyển thành văn bản tiếng Việt</p>
         </div>
 
-        <!-- Links List -->
-        <div class="space-y-3.5">
-            <a href="LINK_CON_CU_CUA_BAN_1" target="_blank" class="flex items-center p-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-medium transition-all transform hover:-translate-y-0.5 shadow-md shadow-indigo-600/20 group">
-                <span class="text-xl mr-3 group-hover:scale-110 transition-transform">🗣️</span>
-                <div class="flex-1 text-left">
-                    <div class="text-sm font-semibold">Chuyển đổi trực tiếp (Online)</div>
-                    <div class="text-xs text-indigo-200">Nói vào micro để nhận văn bản ngay</div>
-                </div>
-                <span class="text-indigo-200">→</span>
-            </a>
+        <!-- Control Buttons -->
+        <div class="flex gap-3 mb-4">
+            <button id="start-btn" onclick="startRecording()" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm">
+                <span>🔴 Bắt đầu nói</span>
+            </button>
+            <button id="stop-btn" onclick="stopRecording()" disabled class="flex-1 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-slate-400 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-not-allowed">
+                <span>⏹️ Dừng lại</span>
+            </button>
+        </div>
 
-            <a href="LINK_CON_CU_CUA_BAN_2" target="_blank" class="flex items-center p-4 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-2xl font-medium transition-all transform hover:-translate-y-0.5">
-                <span class="text-xl mr-3">📂</span>
-                <div class="flex-1 text-left">
-                    <div class="text-sm font-semibold">Tải file ghi âm lên</div>
-                    <div class="text-xs text-slate-400">Hỗ trợ MP3, WAV, M4A</div>
-                </div>
-                <span class="text-slate-400">→</span>
-            </a>
+        <!-- Result Box -->
+        <div class="mb-4">
+            <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản nhận được:</label>
+            <textarea id="result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-4 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ sẽ hiện ra ở đây khi bạn nói..."></textarea>
+        </div>
 
-            <a href="LINK_CON_CU_CUA_BAN_3" target="_blank" class="flex items-center p-4 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-2xl font-medium transition-all transform hover:-translate-y-0.5">
-                <span class="text-xl mr-3">📖</span>
-                <div class="flex-1 text-left">
-                    <div class="text-sm font-semibold">Hướng dẫn & Mẹo sử dụng</div>
-                    <div class="text-xs text-slate-400">Cách đọc chuẩn để AI nhận diện tốt nhất</div>
-                </div>
-                <span class="text-slate-400">→</span>
-            </a>
-            
-            <a href="LINK_SOCIAL_HOẶC_ZALO_CỦA_BẠN" target="_blank" class="flex items-center p-4 bg-slate-700/80 hover:bg-slate-700 border border-slate-600/50 rounded-2xl font-medium transition-all transform hover:-translate-y-0.5">
-                <span class="text-xl mr-3">💬</span>
-                <div class="flex-1 text-left">
-                    <div class="text-sm font-semibold">Hỗ trợ / Liên hệ</div>
-                    <div class="text-xs text-slate-400">Kết nối qua Zalo hoặc Facebook</div>
-                </div>
-                <span class="text-slate-400">→</span>
-            </a>
+        <!-- Action Buttons (Copy & Clear) -->
+        <div class="flex gap-3">
+            <button onclick="copyText()" class="flex-1 py-2.5 px-3 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-xl transition-all">
+                📋 Sao chép văn bản
+            </button>
+            <button onclick="clearText()" class="py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-xl border border-red-500/20 transition-all">
+                🗑️ Xóa
+            </button>
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-8 text-xs text-slate-500">
-            Powered by AI &bull; Chuyển văn bản nhanh chóng, chính xác
+        <div class="text-center mt-6 text-xs text-slate-500">
+            Powered by Web Speech API &bull; Chạy trực tiếp trên trình duyệt
         </div>
     </div>
 
+    <script>
+        let recognition;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'vi-VN'; // Thiết lập ngôn ngữ tiếng Việt
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = document.getElementById('result-text').value;
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                document.getElementById('result-text').value = finalTranscript + interimTranscript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Lỗi nhận diện giọng nói: ', event.error);
+                stopRecording();
+            };
+
+            recognition.onend = function() {
+                if (isRecording) {
+                    recognition.start(); // Tự động bật lại nếu đang ghi âm dở
+                }
+            };
+        } else {
+            alert('Trình duyệt của bạn không hỗ trợ tính năng chuyển giọng nói thành văn bản. Vui lòng dùng Google Chrome!');
+        }
+
+        function startRecording() {
+            if (!recognition) return;
+            isRecording = true;
+            recognition.start();
+            
+            document.getElementById('start-btn').className = "flex-1 py-3 px-4 bg-red-600 animate-pulse font-semibold rounded-2xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 text-sm text-white";
+            document.getElementById('start-btn').innerText = "Đang lắng nghe...";
+            
+            let stopBtn = document.getElementById('stop-btn');
+            stopBtn.disabled = false;
+            stopBtn.className = "flex-1 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-pointer";
+            
+            document.getElementById('mic-icon').classList.add('scale-110', 'ring-4', 'ring-red-500/50');
+        }
+
+        function stopRecording() {
+            if (!recognition) return;
+            isRecording = false;
+            recognition.stop();
+            
+            let startBtn = document.getElementById('start-btn');
+            startBtn.disabled = false;
+            startBtn.className = "flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 text-sm text-white";
+            startBtn.innerText = "🔴 Bắt đầu nói";
+            
+            let stopBtn = document.getElementById('stop-btn');
+            stopBtn.disabled = true;
+            stopBtn.className = "flex-1 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-slate-400 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-not-allowed";
+            
+            document.getElementById('mic-icon').classList.remove('scale-110', 'ring-4', 'ring-red-500/50');
+        }
+
+        function copyText() {
+            const textBox = document.getElementById('result-text');
+            textBox.select();
+            navigator.clipboard.writeText(textBox.value);
+            alert('Đã sao chép văn bản vào bộ nhớ tạm!');
+        }
+
+        function clearText() {
+            document.getElementById('result-text').value = '';
+        }
+    </script>
 </body>
 </html>
