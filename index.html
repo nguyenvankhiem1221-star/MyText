@@ -18,14 +18,14 @@
                 🎙️
             </div>
             <h1 class="text-xl font-bold tracking-tight">Speech-to-Text VN</h1>
-            <p class="text-xs text-slate-400 mt-1">Chuyển đổi âm thanh chuẩn xác & Xuất file Word</p>
+            <p class="text-xs text-slate-400 mt-1">Trợ lý chuyển đổi âm thanh & Xuất file Word</p>
         </div>
 
         <!-- Tabs Switcher -->
         <div class="grid grid-cols-3 gap-1 bg-slate-900/80 p-1 rounded-2xl mb-5 border border-slate-700/60">
             <button onclick="switchTab('record')" id="tab-record" class="py-2 text-xs font-semibold rounded-xl bg-indigo-600 text-white transition-all shadow">🎙️ Ghi âm</button>
             <button onclick="switchTab('upload')" id="tab-upload" class="py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">📁 Tải file</button>
-            <button onclick="switchTab('link')" id="tab-link" class="py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">🔗 Dán link</button>
+            <button onclick="switchTab('link')" id="tab-link" class="py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition-all">🔗 Công cụ ngoài</button>
         </div>
 
         <!-- Tab 1: Ghi âm trực tiếp -->
@@ -49,38 +49,22 @@
             </div>
         </div>
 
-        <!-- Tab 2: Tải file lên -->
-        <div id="section-upload" class="hidden space-y-4">
-            <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-4 text-center transition-all cursor-pointer bg-slate-900/40" onclick="document.getElementById('audio-file').click()">
-                <div class="text-2xl mb-1">📂</div>
-                <div class="text-xs font-semibold text-slate-200">Nhấn để chọn file âm thanh / video</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">Hỗ trợ MP3, WAV, MP4</div>
-                <input type="file" id="audio-file" accept="audio/*,video/*" class="hidden" onchange="handleFileUpload(event)">
-            </div>
-            
-            <div id="file-info" class="text-xs text-indigo-300 hidden text-center bg-indigo-950/40 py-1.5 px-3 rounded-xl border border-indigo-900/50 truncate"></div>
-
-            <div id="audio-player-container" class="hidden space-y-3">
-                <audio id="uploaded-audio-element" controls class="w-full h-10 rounded-xl"></audio>
-                
-                <div class="bg-indigo-950/60 border border-indigo-900/60 p-3 rounded-2xl space-y-2">
-                    <div class="text-[11px] text-indigo-200 font-medium leading-relaxed">
-                        💡 <b>Mẹo chạy chữ từ file:</b> Bấm nút <span class="text-yellow-400 font-bold">"Bắt đầu nghe file"</span> bên dưới, sau đó bấm nút Play trên thanh phát nhạc phía trên để máy tự thu âm và chạy chữ chuẩn xác nhất!
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="startFileListening()" id="file-listen-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5">
-                            <span>🎙️ Bắt đầu nghe file</span>
-                        </button>
-                        <button onclick="stopFileListening()" id="file-stop-btn" disabled class="py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed">
-                            <span>⏹️ Dừng</span>
-                        </button>
-                    </div>
+        <!-- Tab 2: Tải file lên (Giải pháp chuyên nghiệp dùng AI) -->
+        <div id="section-upload" class="space-y-4">
+            <div class="bg-indigo-950/60 border border-indigo-900/60 p-4 rounded-2xl space-y-3 text-center">
+                <div class="text-2xl">⚡</div>
+                <div class="text-sm font-bold text-white">Chuyển file âm thanh/video sang chữ cực chuẩn bằng AI</div>
+                <div class="text-xs text-indigo-200 leading-relaxed">
+                    Do trình duyệt web chặn việc tự đọc file nội bộ, bạn hãy dùng công cụ AI chuyên dụng miễn phí dưới đây để trích xuất chuẩn 100% từng chữ, sau đó dán vào đây để xuất file Word nhé!
                 </div>
+                <a href="https://vlsp.org.vn/vlsp-lab/asr" target="_blank" class="block w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-xs font-bold rounded-xl text-white shadow-lg transition-all">
+                    🚀 Mở công cụ chuyển file AI tự động
+                </a>
             </div>
 
             <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Văn bản chuyển đổi thực tế từ file:</label>
-                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Chữ sẽ chạy trực tiếp vào đây khi phát file..."></textarea>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Dán văn bản nhận được từ công cụ AI vào đây:</label>
+                <textarea id="upload-result-text" rows="5" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-3 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 resize-none" placeholder="Dán nội dung chữ vào đây để tiến hành xuất file Word..."></textarea>
             </div>
 
             <div class="flex gap-2">
@@ -100,7 +84,7 @@
                 </div>
             </div>
             <div class="space-y-2 pt-2">
-                <div class="text-xs font-medium text-slate-400">Liên kết nhanh:</div>
+                <div class="text-xs font-medium text-slate-400">Liên kết nhanh hỗ trợ:</div>
                 <div class="grid grid-cols-2 gap-2">
                     <a href="https://translate.google.com" target="_blank" class="p-2.5 bg-slate-900/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl text-xs flex items-center gap-2 transition-all">🌐 Google Translate</a>
                     <a href="https://zalo.me" target="_blank" class="p-2.5 bg-slate-900/80 hover:bg-slate-700 border border-slate-700/60 rounded-xl text-xs flex items-center gap-2 transition-all">💬 Zalo hỗ trợ</a>
@@ -125,12 +109,9 @@
         }
 
         let recognition;
-        let fileRecognition;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            // Phần ghi âm chung
             recognition = new SpeechRecognition();
             recognition.lang = 'vi-VN';
             recognition.continuous = true;
@@ -143,21 +124,6 @@
                     else interim += event.results[i][0].transcript;
                 }
                 document.getElementById('result-text').value = final + interim;
-            };
-
-            // Phần nghe file tải lên
-            fileRecognition = new SpeechRecognition();
-            fileRecognition.lang = 'vi-VN';
-            fileRecognition.continuous = true;
-            fileRecognition.interimResults = true;
-            fileRecognition.onresult = function(event) {
-                let interim = '';
-                let final = document.getElementById('upload-result-text').value;
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) final += event.results[i][0].transcript + ' ';
-                    else interim += event.results[i][0].transcript;
-                }
-                document.getElementById('upload-result-text').value = final + interim;
             };
         }
 
@@ -179,46 +145,6 @@
             document.getElementById('stop-btn').className = "flex-1 py-3 px-4 bg-slate-700 text-slate-400 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 text-sm cursor-not-allowed";
         }
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const info = document.getElementById('file-info');
-                info.innerText = `Đã chọn file: ${file.name}`;
-                info.classList.remove('hidden');
-
-                const audioEl = document.getElementById('uploaded-audio-element');
-                audioEl.src = URL.createObjectURL(file);
-                document.getElementById('audio-player-container').classList.remove('hidden');
-                document.getElementById('upload-result-text').value = "";
-            }
-        }
-
-        function startFileListening() {
-            if (!fileRecognition) { alert('Trình duyệt không hỗ trợ!'); return; }
-            fileRecognition.start();
-            
-            const btn = document.getElementById('file-listen-btn');
-            btn.className = "flex-1 py-2.5 bg-red-600 animate-pulse text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
-            btn.innerHTML = "<span>🔴 Đang lắng nghe file...</span>";
-            
-            const stopBtn = document.getElementById('file-stop-btn');
-            stopBtn.disabled = false;
-            stopBtn.className = "py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer";
-        }
-
-        function stopFileListening() {
-            if (!fileRecognition) return;
-            fileRecognition.stop();
-            
-            const btn = document.getElementById('file-listen-btn');
-            btn.className = "flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold rounded-xl text-white transition-all shadow flex items-center justify-center gap-1.5";
-            btn.innerHTML = "<span>🎙️ Bắt đầu nghe file</span>";
-            
-            const stopBtn = document.getElementById('file-stop-btn');
-            stopBtn.disabled = true;
-            stopBtn.className = "py-2.5 px-4 bg-slate-700 text-slate-400 text-xs font-semibold rounded-xl transition-all cursor-not-allowed";
-        }
-
         function copyText(id) {
             const textBox = document.getElementById(id);
             textBox.select();
@@ -228,15 +154,12 @@
 
         function clearText(id) {
             document.getElementById(id).value = '';
-            if(id === 'upload-result-text') {
-                stopFileListening();
-            }
         }
 
         function exportToWord(id) {
             const text = document.getElementById(id).value;
             if (!text.trim()) {
-                alert('Không có văn bản để xuất file!');
+                alert('Không có văn bản để xuất file Word!');
                 return;
             }
             const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
